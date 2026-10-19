@@ -18,7 +18,9 @@ Vercel 배포 후 `https://배포도메인/api/latest-apk`는 GitHub Releases AP
 
 ## APK distribution
 
-APK는 다운로드 페이지 repo에 직접 포함하지 않습니다. 최신 APK는 `hojin-v/YTET-Android`의 GitHub Releases에서 가져옵니다.
+정식 APK·ZIP은 `hojin-v/RabbYT-download`의 GitHub Releases에 배포합니다. 앱 소스 저장소 `hojin-v/RabbYT`의 정식 릴리즈와 파일·제목·배포 설명이 같고, APK·ZIP의 SHA-256도 일치하도록 검증합니다. APK는 Git 소스 이력에 넣지 않습니다.
+
+베타는 앱 소스 저장소에서만 배포합니다. 공개 릴리즈 태그는 이 다운로드 페이지의 커밋을 가리키며 앱 소스 커밋을 복사하지 않습니다.
 
 정식 릴리즈로 인정하는 조건은 Android 앱 내부 업데이트 정책과 동일합니다.
 
@@ -26,9 +28,11 @@ APK는 다운로드 페이지 repo에 직접 포함하지 않습니다. 최신 A
 - `prerelease`가 아님
 - 태그가 `v1.2.3` 형식
 - 태그/릴리즈명/asset 이름에 `nightly`, `alpha`, `beta`, `rc`, `dev`, `preview`가 없음
-- APK asset 이름이 `YTET-Android-vX.Y.Z.apk` 형식
+- APK asset 이름이 `RabbYT-Android-vX.Y.Z.apk` 형식
 
-현재 확인된 최신 정식 APK fallback은 `v1.3.7`의 `YTET-Android-v1.3.7.apk`입니다. 페이지 로드 시 브라우저에서도 GitHub Releases API를 확인해 새 정식 릴리즈가 있으면 버튼과 버전/파일 크기를 자동 갱신합니다.
+페이지와 `/api/latest-apk`는 공개 배포 저장소를 우선 조회합니다. 이전 중 공개 릴리즈가 아직 없으면 `RabbYT`, `YTET-Android`의 공개 릴리즈를 임시 대체 주소로 확인합니다. 소스 비공개 전환 후에도 공개 저장소의 정식 APK를 받을 수 있습니다. 모든 조회가 실패하면 정식 릴리즈 목록으로 이동하며, 오래된 고정 버전으로 돌아가지 않습니다.
+
+검증: `node --test tests/releases.test.js`
 
 ## Assets
 

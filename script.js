@@ -8,10 +8,13 @@ const releaseVersion = document.querySelector("[data-release-version]");
 const releaseSize = document.querySelector("[data-release-size]");
 const apkName = document.querySelector("[data-apk-name]");
 
-const releasesApiUrl = "https://api.github.com/repos/hojin-v/YTET-Android/releases?per_page=30";
-const releasesPageUrl = "https://github.com/hojin-v/YTET-Android/releases";
+const releasesApiUrl = "https://api.github.com/repos/hojin-v/RabbYT-download/releases?per_page=30";
+const releasesApiUrls = [releasesApiUrl,
+  "https://api.github.com/repos/hojin-v/RabbYT/releases?per_page=30",
+  "https://api.github.com/repos/hojin-v/YTET-Android/releases?per_page=30"];
+const releasesPageUrl = "https://github.com/hojin-v/RabbYT-download/releases";
 const stableTagPattern = /^v(\d+)\.(\d+)\.(\d+)$/;
-const stableApkPattern = /^YTET-Android-v\d+\.\d+\.\d+\.apk$/i;
+const stableApkPattern = /^RabbYT-Android-v\d+\.\d+\.\d+\.apk$/i;
 const unstableMarkerPattern = /(^|[^a-z0-9])(nightly|alpha|beta|rc|dev|preview)([^a-z0-9]|$)/i;
 
 const tabLabels = {
@@ -563,45 +566,49 @@ async function loadLatestApkRelease() {
     link.href = "/api/latest-apk";
   });
 
-  try {
-    const response = await fetch(releasesApiUrl, {
-      headers: {
-        Accept: "application/vnd.github+json",
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Release API ${response.status}`);
-    }
-    const latest = latestStableRelease(await response.json());
-    const asset = latest ? stableApkAsset(latest) : null;
-    if (!latest || !asset) {
-      throw new Error("Stable APK asset not found");
-    }
+  for (const url of releasesApiUrls) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/vnd.github+json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Release API ${response.status}`);
+      }
+      const latest = latestStableRelease(await response.json());
+      const asset = latest ? stableApkAsset(latest) : null;
+      if (!latest || !asset) {
+        throw new Error("Stable APK asset not found");
+      }
 
-    const versionName = `${latest.tag_name.replace(/^v/, "")}-android`;
-    latestApkLinks.forEach((link) => {
-      link.href = asset.browser_download_url;
-      link.textContent = "최신 APK 다운로드";
-    });
-    if (releaseVersion) {
-      releaseVersion.textContent = versionName;
+      const versionName = `${latest.tag_name.replace(/^v/, "")}-android`;
+      latestApkLinks.forEach((link) => {
+        link.href = asset.browser_download_url;
+        link.textContent = "최신 APK 다운로드";
+      });
+      if (releaseVersion) {
+        releaseVersion.textContent = versionName;
+      }
+      if (releaseSize) {
+        releaseSize.textContent = formatBytes(asset.size);
+      }
+      if (apkName) {
+        apkName.textContent = asset.name;
+      }
+      if (releaseStatus) {
+        releaseStatus.textContent = `최신 정식 버전 ${latest.tag_name} · APK 직접 다운로드`;
+      }
+      return;
+    } catch (error) {
+      // Try the temporary source endpoint only until the public mirror is ready.
     }
-    if (releaseSize) {
-      releaseSize.textContent = formatBytes(asset.size);
-    }
-    if (apkName) {
-      apkName.textContent = asset.name;
-    }
-    if (releaseStatus) {
-      releaseStatus.textContent = `최신 정식 버전 ${latest.tag_name} · APK 직접 다운로드`;
-    }
-  } catch (error) {
-    latestApkLinks.forEach((link) => {
-      link.href = fallbackUrl;
-    });
-    if (releaseStatus) {
-      releaseStatus.textContent = "최신 정보를 불러오지 못하면 현재 확인된 최신 APK로 이동합니다.";
-    }
+  }
+  latestApkLinks.forEach((link) => {
+    link.href = fallbackUrl;
+  });
+  if (releaseStatus) {
+    releaseStatus.textContent = "최신 정보를 불러오지 못했습니다. 다운로드 버튼에서 정식 릴리즈 목록을 확인해 주세요.";
   }
 }
 

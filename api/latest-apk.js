@@ -1,7 +1,10 @@
-const RELEASES_API_URL = "https://api.github.com/repos/hojin-v/YTET-Android/releases?per_page=30";
-const RELEASES_PAGE_URL = "https://github.com/hojin-v/YTET-Android/releases";
+const RELEASES_API_URL = "https://api.github.com/repos/hojin-v/RabbYT-download/releases?per_page=30";
+const RELEASES_API_URLS = [RELEASES_API_URL,
+  "https://api.github.com/repos/hojin-v/RabbYT/releases?per_page=30",
+  "https://api.github.com/repos/hojin-v/YTET-Android/releases?per_page=30"];
+const RELEASES_PAGE_URL = "https://github.com/hojin-v/RabbYT-download/releases";
 const STABLE_TAG_PATTERN = /^v(\d+)\.(\d+)\.(\d+)$/;
-const STABLE_APK_PATTERN = /^YTET-Android-v\d+\.\d+\.\d+\.apk$/i;
+const STABLE_APK_PATTERN = /^RabbYT-Android-v\d+\.\d+\.\d+\.apk$/i;
 const UNSTABLE_MARKER_PATTERN = /(^|[^a-z0-9])(nightly|alpha|beta|rc|dev|preview)([^a-z0-9]|$)/i;
 
 function stableParts(tagName) {
@@ -60,25 +63,29 @@ module.exports = async function latestApk(request, response) {
     return;
   }
 
-  try {
-    const githubResponse = await fetch(RELEASES_API_URL, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "User-Agent": "RabbYT-download-page",
-      },
-    });
-    if (!githubResponse.ok) {
-      throw new Error(`GitHub Releases API ${githubResponse.status}`);
-    }
+  for (const url of RELEASES_API_URLS) {
+    try {
+      const githubResponse = await fetch(url, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "User-Agent": "RabbYT-download-page",
+        },
+      });
+      if (!githubResponse.ok) {
+        throw new Error(`GitHub Releases API ${githubResponse.status}`);
+      }
 
-    const latest = latestStableRelease(await githubResponse.json());
-    const asset = latest ? stableApkAsset(latest) : null;
-    if (!asset) {
-      throw new Error("Stable APK asset not found");
-    }
+      const latest = latestStableRelease(await githubResponse.json());
+      const asset = latest ? stableApkAsset(latest) : null;
+      if (!asset) {
+        throw new Error("Stable APK asset not found");
+      }
 
-    redirect(response, asset.browser_download_url);
-  } catch (error) {
-    redirect(response, RELEASES_PAGE_URL);
+      redirect(response, asset.browser_download_url);
+      return;
+    } catch (error) {
+      // During migration the public mirror may not have a release yet.
+    }
   }
+  redirect(response, RELEASES_PAGE_URL);
 };
