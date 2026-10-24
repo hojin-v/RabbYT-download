@@ -30,7 +30,7 @@ def main():
         page = browser.new_page(viewport={"width": 1600, "height": 900}, device_scale_factor=1)
         page.route("https://**/*", lambda route: route.abort())
         logo = ROOT / "assets" / "RabbYT_logo_embedded.svg"
-        for size, name in ((512, "rabbyt-icon-20261024.png"), (64, "rabbyt-favicon-20261024.png")):
+        for size, name in ((512, "rabbyt-icon-20261024-v302.png"), (64, "rabbyt-favicon-20261024-v302.png")):
             page.set_viewport_size({"width": size, "height": size})
             page.goto(logo.as_uri(), wait_until="load")
             page.evaluate("size => { document.documentElement.setAttribute('width', size); document.documentElement.setAttribute('height', size); }", size)
@@ -38,7 +38,7 @@ def main():
         page.set_viewport_size({"width": 1200, "height": 630})
         page.goto((ROOT / "assets" / "rabbyt-og-image.svg").as_uri(), wait_until="load")
         page.evaluate("async () => { await document.fonts.ready; }")
-        share = ROOT / "assets" / "rabbyt-share-20261024.png"
+        share = ROOT / "assets" / "rabbyt-share-20261024-v302.png"
         page.screenshot(path=str(share))
         for name in ("rabbyt-og-image.png", "rabbyt-og-image-20260620.png", "rabbyt-share-logo-thumbnail-20260620.png"):
             shutil.copyfile(share, ROOT / "assets" / name)

@@ -12,7 +12,7 @@ function release(tag, extra = {}) {
   }], ...extra };
 }
 const candidates = [release("v2.2.1"), release("v9.0.0", { prerelease: true }),
-  release("v8.0.0", { draft: true }), release("v3.0.0"), release("v3.0.1"), release("v2.99.99")];
+  release("v8.0.0", { draft: true }), release("v3.0.0"), release("v3.0.1"), release("v3.0.2"), release("v2.99.99")];
 
 async function server(t, fetcher, method = "GET") {
   t.mock.method(global, "fetch", fetcher);
@@ -30,13 +30,13 @@ test("public stable download works while the source is private and excludes beta
   });
   assert.equal(calls.length, 1);
   assert.equal(response.statusCode, 302);
-  assert.equal(response.headers.Location, release("v3.0.1").assets[0].browser_download_url);
+  assert.equal(response.headers.Location, release("v3.0.2").assets[0].browser_download_url);
 });
 
 test("migration fallback accepts RabbYT assets from the previous source address", async t => {
   const response = await server(t, async url => url.includes("/YTET-Android/")
     ? { ok: true, json: async () => candidates } : { ok: false, status: 404 });
-  assert.equal(response.headers.Location, release("v3.0.1").assets[0].browser_download_url);
+  assert.equal(response.headers.Location, release("v3.0.2").assets[0].browser_download_url);
 });
 
 test("missing releases never fall back to an old fixed APK or a beta", async t => {
@@ -66,9 +66,9 @@ test("browser shows the actual public RabbYT version, name and size", async () =
     assert.match(url, /\/RabbYT-download\/releases/);
     return { ok: true, json: async () => candidates };
   });
-  assert.equal(result.elements["[data-release-version]"].textContent, "3.0.1-android");
-  assert.equal(result.elements["[data-apk-name]"].textContent, "RabbYT-Android-v3.0.1.apk");
-  assert.equal(result.link.href, release("v3.0.1").assets[0].browser_download_url);
+  assert.equal(result.elements["[data-release-version]"].textContent, "3.0.2-android");
+  assert.equal(result.elements["[data-apk-name]"].textContent, "RabbYT-Android-v3.0.2.apk");
+  assert.equal(result.link.href, release("v3.0.2").assets[0].browser_download_url);
 });
 
 test("browser keeps the public release list available when GitHub is unreachable", async () => {
