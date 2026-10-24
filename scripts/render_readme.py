@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Render README artwork from the existing landing page assets and phone mockups.
+"""Render public branding, social previews, and README artwork from the site assets.
 
 Setup: python -m pip install playwright && playwright install chromium
 Run: python scripts/render_readme.py [--browser /path/to/chromium]
 """
 
 import argparse
+import shutil
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -28,8 +29,24 @@ def main():
         browser = playwright.chromium.launch(**options)
         page = browser.new_page(viewport={"width": 1600, "height": 900}, device_scale_factor=1)
         page.route("https://**/*", lambda route: route.abort())
+        logo = ROOT / "assets" / "RabbYT_logo_embedded.svg"
+        for size, name in ((512, "rabbyt-icon-20261024.png"), (64, "rabbyt-favicon-20261024.png")):
+            page.set_viewport_size({"width": size, "height": size})
+            page.goto(logo.as_uri(), wait_until="load")
+            page.evaluate("size => { document.documentElement.setAttribute('width', size); document.documentElement.setAttribute('height', size); }", size)
+            page.screenshot(path=str(ROOT / "assets" / name))
+        page.set_viewport_size({"width": 1200, "height": 630})
+        page.goto((ROOT / "assets" / "rabbyt-og-image.svg").as_uri(), wait_until="load")
+        page.evaluate("async () => { await document.fonts.ready; }")
+        share = ROOT / "assets" / "rabbyt-share-20261024.png"
+        page.screenshot(path=str(share))
+        for name in ("rabbyt-og-image.png", "rabbyt-og-image-20260620.png", "rabbyt-share-logo-thumbnail-20260620.png"):
+            shutil.copyfile(share, ROOT / "assets" / name)
+        page.set_viewport_size({"width": 1600, "height": 900})
         # File URLs keep this render independent of live release APIs and accounts.
         page.goto((ROOT / "index.html").as_uri(), wait_until="load")
+        page.add_style_tag(content=".reveal-target { opacity: 1 !important; transform: none !important; }")
+        page.locator("#guide-video .phone-shell").screenshot(path=str(OUTPUT / "video.png"))
         phones = page.locator(".hero-phone").evaluate_all("nodes => nodes.map(node => node.outerHTML)")
         assert len(phones) == 3
         page.evaluate("""({logo, phones}) => {
@@ -38,8 +55,8 @@ def main():
             <section class="readme-banner">
               <div class="readme-banner-copy">
                 <div class="readme-wordmark">Rabb<span>YT</span></div>
-                <h1>마음에 든 링크를 내 파일로.<br>저장한 음악을 내 플레이어로.</h1>
-                <p>스트림 · 내 음악 · 영상·음원·사진 추출</p>
+                <h1>보고 듣는 순간부터,<br>내 파일로 남기기까지.</h1>
+                <p>YouTube 탐색 · 음악 보관함 · 미디어 추출</p>
                 <div class="readme-address">rabbyt.ive.codes <span>Android</span></div>
               </div>
               <img class="readme-logo" src="${logo}" alt="RabbYT 로고">
@@ -75,7 +92,7 @@ def main():
             font-size: 14px; border: 1px solid #584149; padding: 6px 12px;
             border-radius: 30px; color: #ff969b;
           }
-          .readme-logo { width: 400px; height: 400px; object-fit: contain; margin-right: 24px; }
+          .readme-logo { width: 400px; height: 400px; object-fit: contain; margin-right: 24px; border-radius: 90px; }
           .readme-screens { width: 1160px; padding: 30px 20px; display: flex; gap: 26px; }
           .readme-screen { width: 356px; }
           .readme-screen-label {

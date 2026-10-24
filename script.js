@@ -7,6 +7,7 @@ const releaseStatus = document.querySelector("[data-release-status]");
 const releaseVersion = document.querySelector("[data-release-version]");
 const releaseSize = document.querySelector("[data-release-size]");
 const apkName = document.querySelector("[data-apk-name]");
+const releaseNotesLinks = document.querySelectorAll("[data-release-notes-link]");
 
 const releasesApiUrl = "https://api.github.com/repos/hojin-v/RabbYT-download/releases?per_page=30";
 const releasesApiUrls = [releasesApiUrl,
@@ -21,29 +22,47 @@ const tabLabels = {
   stream: "스트림",
   library: "내 음악",
   extractor: "추출기",
+  youtube: "YouTube 탐색",
+  video: "영상 플레이어",
 };
 
 const guideData = {
   stream: {
     title: "스트림",
-    text: "YouTube 플레이리스트형 영상을 앱 안에서 모아 보고 바로 재생하는 화면입니다.",
+    text: "취향에 맞는 채널을 모으고, 플레이리스트형 영상을 음악처럼 이어 듣는 화면입니다.",
     active: "stream-playlists",
     points: [
-      ["플레이리스트 영상", "YouTube 채널의 /videos 화면에 있는 플레이리스트형 영상을 가져와 보여줍니다."],
-      ["섹션 구성", "앱에서는 추천 소스별로 3개씩 묶어 빠르게 훑을 수 있게 구성합니다."],
+      ["채널 관리", "편집에서 채널을 검색해 미리 확인하고 추가·삭제·순서 변경합니다. 기본 채널도 지울 수 있습니다."],
+      ["영상 찾기", "상단 YouTube 버튼을 누르면 앱 안의 영상 검색 화면으로 전환합니다."],
       ["하단 플레이어", "재생 상태는 앱 아래 미니 플레이어에서 계속 확인합니다."],
     ],
     details: {
       "stream-playlists": {
-        title: "YouTube 플레이리스트 스트림",
-        text: "추천 YouTube 플레이리스트 영상을 섹션으로 가져와 앱 플레이어에서 이어 들을 수 있게 보여줍니다.",
+        title: "내 취향으로 채널을 고르고 이어 듣기",
+        text: "기본 채널로 시작하고, 자주 듣는 채널은 직접 추가하세요. 음악처럼 들을 때와 영상으로 볼 때의 플레이어를 나눴습니다.",
         points: [
-          ["가져오는 대상", "단일 곡이 아니라 YouTube에 올라온 플레이리스트형 긴 영상 목록을 불러옵니다."],
-          ["실제 화면 예시", "essential;와 레이백의 /videos 화면에서 보이는 플레이리스트 제목을 3개씩 표시했습니다."],
-          ["재생 흐름", "목록에서 고른 항목은 아래 플레이어 바에 현재 재생 중인 항목으로 표시됩니다."],
+          ["채널 편집", "검색한 채널의 이미지와 최근 영상을 확인하고 추가합니다. 순서도 바꿀 수 있습니다."],
+          ["채널 상세", "최신순·인기순·날짜순·좋아요와 보기 형식으로 찾고 다음 목록을 이어 불러옵니다."],
+          ["재생과 공유", "스트림은 음악 플레이어로 듣고, 항목을 길게 누르면 링크를 복사하거나 공유합니다."],
         ],
       },
     },
+  },
+  youtube: {
+    title: "YouTube 탐색", text: "스트림 상단의 YouTube 버튼에서 영상·Shorts·채널·재생목록을 찾습니다.", active: "youtube-search",
+    points: [
+      ["검색과 보기", "전체·동영상·Shorts를 고르고 목록·작은 카드·큰 카드로 전환합니다. 아래로 내리면 다음 결과를 불러옵니다."],
+      ["로그인하면", "열쇠 버튼에서 YouTube 로그인 정보를 연결하면 맞춤 추천·구독과 저장된 재생목록을 볼 수 있습니다."],
+      ["재생목록", "목록을 열어 수록 영상을 확인하고 선택한 영상부터 순서대로 재생합니다. 길게 누르면 원본 링크를 공유합니다."],
+    ], details: {},
+  },
+  video: {
+    title: "전용 영상 플레이어", text: "YouTube 탐색에서 고른 영상은 전용 플레이어로 열립니다. 앱을 나가거나 작은 창으로 바꿔도 이어집니다.", active: "video-controls",
+    points: [
+      ["재생 설정", "화질·음성·자막·배속, 다음 영상 자동재생과 종료 타이머를 설정합니다. 한국어 음성이 있으면 우선 선택합니다."],
+      ["화면 조작", "양끝 더블 탭으로 10초 이동합니다. 조작 버튼이 숨겨진 화면의 왼쪽·오른쪽 가장자리를 밀어 밝기·음량을 바꾸고 두 손가락으로 확대합니다."],
+      ["앱 밖에서도", "백그라운드·잠금화면·PiP에서 재생하고 하단 플레이어바로 돌아옵니다. 회전 잠금과 제스처 잠금은 따로 설정합니다."],
+    ], details: {},
   },
   library: {
     title: "기기 플레이어",
@@ -59,7 +78,7 @@ const guideData = {
         title: "보관함 필터",
         text: "필터 칩을 눌러 같은 음악 목록을 다른 기준으로 볼 수 있습니다.",
         points: [
-          ["전체", "스캔된 곡을 목록으로 봅니다."],
+          ["소스 선택", "보관함·기기 파일을 고릅니다. YouTube 로그인 상태이면 계정의 저장된 재생목록도 별도로 볼 수 있습니다."],
           ["앨범/아티스트", "파일 메타데이터를 기준으로 음악을 묶습니다."],
           ["재생목록", "직접 만든 묶음으로 음악을 관리합니다."],
         ],
@@ -78,19 +97,28 @@ const guideData = {
         text: "기기 파일을 선택하면 앱 내부 플레이어에서 이어서 재생할 수 있습니다.",
         points: [
           ["하단 플레이어", "현재 곡은 화면 아래에서 계속 표시됩니다."],
-          ["백그라운드 재생", "앱을 벗어나도 foreground media service가 재생을 유지합니다."],
-          ["알림 제어", "Android 알림과 잠금화면에서 이전/재생/다음 컨트롤을 사용할 수 있습니다."],
+          ["배속과 타이머", "배속은 0.1 단위로 바꿉니다. 타이머의 남은 시간과 일시정지·해제는 알림에서도 조작합니다."],
+          ["알림 제어", "앱을 벗어나도 재생하며 Android 알림과 잠금화면에서 이전·재생·다음을 조작합니다."],
+        ],
+      },
+      "library-playlists": {
+        title: "좋아요와 내 재생목록",
+        text: "마음에 든 음악·동영상·플레이리스트를 각각 모으고, 내 음악은 원하는 곡끼리 묶습니다.",
+        points: [
+          ["좋아요", "플레이어의 하트로 저장합니다. 음악·동영상·플레이리스트는 별도 좋아요 목록으로 정리됩니다."],
+          ["목록 만들기", "재생목록 탭의 + 버튼으로 만듭니다. 곡을 길게 눌러 다음 곡 재생·현재 목록 추가·재생목록 저장을 고릅니다."],
+          ["파일은 그대로", "재생목록의 곡을 제거해도 파일은 삭제하지 않습니다. 보관함·기기 파일을 바꿔도 같은 목록을 사용합니다."],
         ],
       },
     },
   },
   extractor: {
     title: "추출기",
-    text: "YouTube URL을 넣고 음원 또는 영상 저장 조건을 고른 뒤 추출을 시작하는 화면입니다.",
+    text: "YouTube와 기타 지원 사이트의 링크에서 영상·음원·사진을 저장하는 화면입니다.",
     active: "extract-url",
     points: [
-      ["URL 입력", "권한이 있는 YouTube 또는 YouTube Music 링크를 붙여넣습니다."],
-      ["음원 옵션", "음원 모드에서는 플레이리스트 URL 처리와 MusicBrainz 보정을 선택할 수 있습니다."],
+      ["URL 입력", "링크를 공유하거나 붙여넣습니다. YouTube와 기타 사이트 모드를 구분합니다."],
+      ["옵션 선택", "음원·영상·사진 종류와 포맷을 선택합니다. Other URL은 링크를 분석한 뒤 실제 제공되는 옵션을 표시합니다."],
       ["추출 시작", "저장 폴더를 확인하고 추출 버튼을 누릅니다."],
     ],
     details: {
@@ -98,7 +126,7 @@ const guideData = {
         title: "YouTube URL",
         text: "추출할 링크를 가장 먼저 입력합니다.",
         points: [
-          ["지원 링크", "YouTube, YouTube Music, youtu.be 링크를 입력합니다."],
+          ["지원 링크", "YouTube·YouTube Music은 기본 모드, Instagram·Threads·X 등 기타 지원 사이트는 Other URL을 사용합니다."],
           ["공유 연동", "다른 앱에서 공유한 링크가 있으면 추출기에 자동 입력됩니다."],
           ["권한 확인", "저장 권한이 있는 콘텐츠만 사용해야 합니다."],
         ],
@@ -107,18 +135,18 @@ const guideData = {
         title: "음원 모드",
         text: "음원 저장을 선택하면 플레이리스트 처리와 실제 제목/아티스트 보정 옵션을 함께 설정합니다.",
         points: [
-          ["저장 형식", "M4A 또는 Original Opus 같은 오디오 형식을 고릅니다."],
+          ["저장 형식", "M4A (AAC) 권장, Opus 원본, MP3를 고릅니다. 기타 사이트는 분석한 원본과 호환 형식이 표시됩니다."],
           ["플레이리스트 처리", "list=가 포함된 YouTube 재생목록 링크를 통째로 저장할 수 있습니다."],
           ["메타데이터 보정", "MusicBrainz 검색 결과로 제목, 아티스트, 앨범 정보를 보정합니다."],
         ],
       },
       "extract-mode-video": {
         title: "영상 모드",
-        text: "영상 저장을 선택하면 영상 품질과 등록 자막 포함 여부를 설정합니다.",
+        text: "영상 저장을 선택하면 품질·음성 언어·자막 포함 여부를 설정합니다.",
         points: [
           ["저장 품질", "원본 최고품질 MKV 또는 1080p/720p/480p MP4 옵션을 고릅니다."],
-          ["자막 옵션", "YouTube에 등록된 한국어/영어 자막이 있으면 함께 저장할 수 있습니다."],
-          ["옵션 분리", "플레이리스트 음원 처리와 MusicBrainz 보정은 음원 모드에서만 표시됩니다."],
+          ["음성 선택", "제공되는 음성 언어를 여러 개 넣거나, 모두 해제해 음성 없이 저장할 수 있습니다."],
+          ["자막 옵션", "한국어·영어 등록 자막을 우선하고 없으면 제공되는 자동 생성·번역 자막을 시도합니다."],
         ],
       },
       "extract-playlist": {
@@ -146,18 +174,18 @@ const guideData = {
       },
       "extract-subtitles": {
         title: "영상 자막 옵션",
-        text: "영상 모드에서는 YouTube에 등록된 한국어/영어 자막 파일을 결과와 함께 저장할지 선택합니다.",
+        text: "한국어·영어 자막을 영상과 함께 저장할지 선택합니다. 포함 여부와 실패 안내도 결과에서 확인합니다.",
         points: [
           ["표시 조건", "자막 옵션은 영상을 선택했을 때만 화면에 나타납니다."],
-          ["대상 언어", "한국어와 영어로 등록된 자막이 있는 경우 함께 처리합니다."],
-          ["저장 결과", "영상 파일과 함께 같은 작업 결과로 확인할 수 있습니다."],
+          ["선택 순서", "한국어·영어 등록 자막을 먼저 확인하고 없으면 사이트의 자동 생성·번역 자막을 시도합니다."],
+          ["저장 결과", "실제로 포함했는지와 자막을 받지 못한 이유를 안내합니다. 사이트가 제공하지 않는 자막은 저장할 수 없습니다."],
         ],
       },
       "extract-folder": {
         title: "저장 폴더",
         text: "기본 저장 위치를 쓰거나 Android 폴더 선택 화면에서 직접 고릅니다.",
         points: [
-          ["기본값", "음원은 Download/RabbYT/Music, 영상은 Download/RabbYT/Video에 저장됩니다."],
+          ["기본값", "YouTube는 Download/RabbYT/Music·Video, 기타 사이트는 플랫폼·계정·종류·추출일별로 정리합니다."],
           ["사용자 지정", "원하는 폴더를 선택해 결과 파일을 저장합니다."],
           ["다시 기본값", "기본값 버튼으로 언제든 기본 저장 경로로 되돌립니다."],
         ],
@@ -166,9 +194,18 @@ const guideData = {
         title: "추출 시작",
         text: "설정을 확인한 뒤 추출 버튼을 누르면 백그라운드 작업이 시작됩니다.",
         points: [
-          ["진행 상태", "화면의 진행 바와 알림에서 진행률을 확인합니다."],
-          ["취소", "진행 중에는 취소 버튼으로 중단 요청을 보낼 수 있습니다."],
-          ["결과 확인", "완료 후 저장된 파일 경로와 결과 메시지를 확인합니다."],
+          ["작업 대기열", "제목과 링크·진행률을 확인합니다. 다른 링크를 추가하면 순서대로 처리하고 대기 작업도 취소할 수 있습니다."],
+          ["실패 재시도", "실패 안내의 재시도 버튼으로 다시 대기열에 넣습니다. 진행 중인 다른 작업은 이어집니다."],
+          ["추출 기록", "완료한 기록을 날짜·종류·사이트로 찾고 제목·채널·링크를 검색합니다. 링크 복사와 기록 삭제도 지원합니다."],
+        ],
+      },
+      "extract-other": {
+        title: "다른 사이트와 사진 저장",
+        text: "Other URL에 링크를 넣고 분석하면 제공되는 미디어와 옵션을 확인할 수 있습니다.",
+        points: [
+          ["실제 옵션", "Instagram·Threads·X 등 지원 사이트가 제공한 형식과 해상도를 표시합니다. 접근 제한에 따라 로그인 정보가 필요할 수 있습니다."],
+          ["사진 선택", "Instagram 사진을 전체 또는 여러 장 골라 저장합니다. 영상 게시물도 제공되는 썸네일이나 첫 장면을 사진으로 저장할 수 있습니다."],
+          ["원본과 권장", "원본·JPG·PNG·WebP 중에서 고릅니다. 사이트가 제공하는 파일을 저장하며 업로드 전 촬영 파일을 복원하는 기능은 아닙니다."],
         ],
       },
     },
@@ -177,10 +214,14 @@ const guideData = {
 
 const guideSteps = [
   { screen: "stream", target: "stream-playlists" },
+  { screen: "youtube", target: "youtube-search" },
+  { screen: "video", target: "video-controls" },
   { screen: "library", target: "library-filters" },
   { screen: "library", target: "library-actions" },
   { screen: "library", target: "library-player" },
+  { screen: "library", target: "library-playlists" },
   { screen: "extractor", target: "extract-url" },
+  { screen: "extractor", target: "extract-other" },
   { screen: "extractor", target: "extract-mode-audio" },
   { screen: "extractor", target: "extract-playlist" },
   { screen: "extractor", target: "extract-metadata" },
@@ -255,6 +296,7 @@ function escapeHtml(value) {
 }
 
 function tabsHtml(activeScreen) {
+  if (["youtube", "video"].includes(activeScreen)) activeScreen = "stream";
   return `
     <div class="bottom-tabs mock-tabs">
       ${["stream", "library", "extractor"]
@@ -290,8 +332,28 @@ function channelSectionHtml(channel, rows) {
 }
 
 function screenHtml(screenKey, activeTarget) {
+  if (screenKey === "youtube") {
+    return `<div class="mock-stream-toolbar"><span class="mock-youtube">▶</span><span>로그인 관리</span></div>
+      <div class="mock-search">영상·채널·재생목록 검색</div>
+      <div class="chip-row"><span class="active">전체</span><span>동영상</span><span>Shorts</span><span>구독</span></div>
+      <div class="mock-result-thumb cover stream-essential-1"><span>13:57</span></div>
+      <div class="mock-result-copy"><strong>지금, 보고 싶은 영상을 바로</strong><small>essential; · 1.3만회</small></div>
+      <div class="mock-video-row"><span class="cover stream-layback-1"></span><div><strong>마음에 드는 플레이리스트</strong><small>레이백 · 재생목록</small></div></div>
+      ${tabsHtml(screenKey)}`;
+  }
+  if (screenKey === "video") {
+    return `<div class="video-preview"><img src="assets/stream-essential-1.jpg" alt="" loading="lazy">
+      <div class="video-preview-title"><strong>지금, 보고 싶은 영상을 바로</strong><span>essential; · 1.3만회</span></div><span class="video-preview-play">▶</span>
+      <div class="video-preview-controls"><span>0:18 / 13:57</span><span>1.0× &nbsp; CC &nbsp; <svg class="mock-fullscreen" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div><span class="video-preview-progress"></span></div>
+      <div class="mock-setting-row"><span>화질</span><strong>자동 · 1080p</strong></div>
+      <div class="mock-setting-row"><span>음성 언어</span><strong>자동 · 한국어</strong></div>
+      <div class="mock-setting-row"><span>자막</span><strong>한국어</strong></div>
+      <div class="mock-setting-row"><span>종료 타이머</span><strong>동영상 끝</strong></div>
+      <div class="mock-setting-row"><span>작은 창으로 이어 보기</span><strong>PiP</strong></div>`;
+  }
   if (screenKey === "stream") {
     return `
+      <div class="mock-stream-toolbar"><span class="mock-youtube">▶</span><span>편집</span></div>
       ${channelSectionHtml(
         "essential;",
         [
@@ -321,6 +383,14 @@ function screenHtml(screenKey, activeTarget) {
   }
 
   if (screenKey === "library") {
+    if (activeTarget === "library-playlists") {
+      return `<div class="screen-toolbar compact-toolbar"><span class="source-chip">보관함</span><span class="icon-dot" aria-label="검색"></span><span class="icon-grid" aria-label="보기 전환"></span></div>
+        <div class="chip-row"><span>전체</span><span>앨범</span><span>아티스트</span><span class="active">재생목록</span></div>
+        <div class="library-row"><span class="cover lauv-cover"></span><span class="mock-copy"><strong>좋아요 표시한 음악</strong><small>12곡</small></span></div>
+        <div class="library-row"><span class="cover stream-essential-1"></span><span class="mock-copy"><strong>좋아요 표시한 동영상</strong><small>4개 동영상</small></span></div>
+        <div class="library-row"><span class="cover stream-layback-1"></span><span class="mock-copy"><strong>좋아요 표시한 플레이리스트</strong><small>3개 플레이리스트</small></span></div>
+        <span class="mock-fab" aria-label="새 재생목록">+</span>${tabsHtml(screenKey)}`;
+    }
     return `
       <div class="screen-toolbar compact-toolbar">
         <span class="source-chip ${activeTarget === "library-filters" ? "active" : ""}">보관함</span>
@@ -366,30 +436,32 @@ function screenHtml(screenKey, activeTarget) {
     `;
   }
 
+  const isOther = activeTarget === "extract-other";
   const isVideoMode = activeTarget === "extract-mode-video" || activeTarget === "extract-subtitles";
   const isAudioModeStep = activeTarget === "extract-mode-audio";
   const isVideoModeStep = activeTarget === "extract-mode-video";
-  const folderPath = isVideoMode ? "Download/RabbYT/Video" : "Download/RabbYT/Music";
+  const folderPath = isOther ? "Download/RabbYT/Instagram/계정명/image/추출일" : isVideoMode ? "Download/RabbYT/Video" : "Download/RabbYT/Music";
 
   return `
-    <div class="field-label">YouTube URL</div>
+    <div class="field-label url-modes"><span>YouTube</span><span>|</span><span>Other URL</span></div>
     <div class="input-preview ${activeTarget === "extract-url" ? "active" : ""}">
-      https://youtu.be/6Yf4tPL6_Xw
+      ${isOther ? "instagram.com/p/…" : "https://youtu.be/6Yf4tPL6_Xw"}
     </div>
     <div class="field-label">모드</div>
     <div class="radio-row">
-      <span class="${!isVideoMode ? "selected" : ""} ${isAudioModeStep ? "target-active" : ""}">음원</span>
+      <span class="${!isVideoMode && !isOther ? "selected" : ""} ${isAudioModeStep ? "target-active" : ""}">음원</span>
       <span class="${isVideoMode ? "selected" : ""} ${isVideoModeStep ? "target-active" : ""}">영상</span>
+      ${isOther ? '<span class="selected">사진</span>' : ""}
     </div>
     <div class="field-label">포맷 / 품질</div>
     <div class="select-preview">
-      ${isVideoMode ? "원본 최고품질 (MKV)" : "M4A (AAC)"}
+      ${isOther ? "JPG · 원본/권장" : isVideoMode ? "원본 최고품질 MKV" : "M4A (AAC) · 권장"}
     </div>
     ${
-      isVideoMode
+      isOther ? '<div class="check-row on">전체 사진 선택</div><div class="folder-note">사진·썸네일·영상 첫 장면을 구분해 선택</div>' : isVideoMode
         ? `
           <div class="check-row ${activeTarget === "extract-subtitles" ? "active" : ""}">
-            한국어/영어 등록 자막 포함
+            한국어/영어 자막 포함
           </div>
         `
         : `
@@ -596,6 +668,7 @@ async function loadLatestApkRelease() {
       if (apkName) {
         apkName.textContent = asset.name;
       }
+      releaseNotesLinks.forEach((link) => { link.href = `${releasesPageUrl}/tag/${latest.tag_name}`; });
       if (releaseStatus) {
         releaseStatus.textContent = `최신 정식 버전 ${latest.tag_name} · APK 직접 다운로드`;
       }
